@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="그리네플 경영지원·회계 업무 게시판">
+  <title>그리네플 경영지원·회계 업무 게시판</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="login-view" class="login-shell">
+    <div class="login-card">
+      <div class="brand-mark" aria-hidden="true">G</div>
+      <p class="eyebrow">GREENEPLE</p>
+      <h1>경영지원·회계<br>업무 게시판</h1>
+      <p class="login-copy">부여받은 아이디와 비밀번호로 로그인하세요.</p>
+      <form id="login-form" class="stack-form">
+        <label for="login-id">아이디</label>
+        <input id="login-id" name="loginId" autocomplete="username" maxlength="30" required placeholder="greeneple1">
+        <label for="login-password">비밀번호</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="비밀번호">
+        <p id="login-error" class="form-error" role="alert"></p>
+        <button class="primary-button full" type="submit">로그인</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="app-view" class="app-shell hidden">
+    <header class="site-header">
+      <div class="header-inner">
+        <button id="home-button" class="brand-button" type="button" aria-label="게시판 홈">
+          <span class="brand-mark small" aria-hidden="true">G</span>
+          <span>
+            <strong>그리네플</strong>
+            <small>경영지원·회계 업무 게시판</small>
+          </span>
+        </button>
+        <div class="account-area">
+          <span id="current-user"></span>
+          <button id="logout-button" class="text-button" type="button">로그아웃</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section id="list-view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">BOARD</p>
+            <h2>업무 게시판</h2>
+          </div>
+          <button id="new-post-button" class="primary-button" type="button">글쓰기</button>
+        </div>
+        <div class="board-card">
+          <div class="board-head" aria-hidden="true">
+            <span>번호</span><span>제목</span><span>작성자</span><span>작성일</span><span>조회</span>
+          </div>
+          <div id="post-list" class="post-list"></div>
+          <div id="empty-posts" class="empty-state hidden">등록된 게시물이 없습니다.</div>
+        </div>
+      </section>
+
+      <section id="editor-view" class="hidden">
+        <div class="page-heading compact">
+          <div>
+            <p class="eyebrow">WRITE</p>
+            <h2 id="editor-title">새 글 작성</h2>
+          </div>
+        </div>
+        <form id="post-form" class="editor-card">
+          <label for="post-title">제목</label>
+          <input id="post-title" maxlength="150" required placeholder="제목을 입력하세요">
+          <label for="post-content">내용</label>
+          <textarea id="post-content" maxlength="10000" required placeholder="업무 내용을 입력하세요. Google Drive 링크를 붙여 넣을 수 있습니다."></textarea>
+          <div class="form-actions">
+            <button id="cancel-post-button" class="secondary-button" type="button">취소</button>
+            <button class="primary-button" type="submit">저장</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="detail-view" class="hidden">
+        <button id="back-button" class="back-button" type="button">← 목록으로</button>
+        <article class="detail-card">
+          <div class="detail-header">
+            <h2 id="detail-title"></h2>
+            <div class="detail-meta">
+              <span id="detail-author"></span>
+              <span id="detail-date"></span>
+              <span>조회 <strong id="detail-views"></strong></span>
+            </div>
+          </div>
+          <div id="detail-content" class="detail-content"></div>
+          <div id="post-owner-actions" class="owner-actions hidden">
+            <button id="edit-post-button" class="text-button" type="button">수정</button>
+            <button id="delete-post-button" class="danger-button" type="button">삭제</button>
+          </div>
+        </article>
+
+        <section class="comments-card">
+          <h3>댓글 <span id="comment-count">0</span></h3>
+          <form id="comment-form" class="comment-form">
+            <textarea id="comment-content" maxlength="3000" required placeholder="댓글을 입력하세요"></textarea>
+            <button class="primary-button" type="submit">댓글 등록</button>
+          </form>
+          <div id="comment-list" class="comment-list"></div>
+          <div id="empty-comments" class="empty-state hidden">첫 댓글을 남겨보세요.</div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
