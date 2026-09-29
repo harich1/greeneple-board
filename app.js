@@ -51,7 +51,11 @@ async function loadProfile() {
 }
 
 async function loadPosts() {
-  const { data, error } = await supabase.from("posts").select("id, title, author_id, author_name, view_count, created_at, updated_at").order("id", { ascending: false }).limit(200);
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id, title, author_id, author_name, view_count, created_at, updated_at, comments(count)")
+    .order("id", { ascending: false })
+    .limit(200);
   if (error) throw error;
   state.posts = data || [];
   renderPosts();
@@ -62,12 +66,13 @@ function renderPosts() {
   list.replaceChildren();
   $("empty-posts").classList.toggle("hidden", state.posts.length > 0);
   state.posts.forEach((post, index) => {
+    const commentCount = Number(post.comments?.[0]?.count ?? 0);
     const row = document.createElement("button");
     row.type = "button";
     row.className = "post-row";
     row.innerHTML = `
       <span class="meta">${state.posts.length - index}</span>
-      <span class="post-title">${escapeHtml(post.title)}</span>
+      <span class="post-title"><span>${escapeHtml(post.title)}</span>${commentCount > 0 ? `<span class="comment-badge" aria-label="댓글과 답글 ${commentCount}개">[${commentCount}]</span>` : ""}</span>
       <span class="meta">${escapeHtml(post.author_name)}</span>
       <span class="meta date">${formatDate(post.created_at)}</span>
       <span class="meta views">${post.view_count}</span>`;
