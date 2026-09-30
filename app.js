@@ -3,6 +3,7 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, LOGIN_DOMAIN } from "./config.j
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const state = { session: null, profile: null, posts: [], activePost: null, comments: [], editingPostId: null };
+let appInitialized = false;
 const $ = (id) => document.getElementById(id);
 const views = ["list-view", "editor-view", "detail-view"];
 
@@ -41,6 +42,56 @@ function formatDate(value, withTime = false) {
 
 function canManage(authorId) {
   return state.profile?.is_admin || authorId === state.session?.user?.id;
+}
+
+function draftStorageKey() {
+  return state.session?.user?.id ? `greeneple-board:draft:${state.session.user.id}` : null;
+}
+
+function savePostDraft() {
+  if (state.editingPostId !== null) return;
+  const key = draftStorageKey();
+  if (!key) return;
+  const title = $("post-title").value;
+  const content = $("post-content").value;
+  try {
+    if (!title && !content) {
+      localStorage.removeItem(key);
+      $("draft-status").textContent = "작성 내용은 자동으로 임시저장됩니다.";
+      return;
+    }
+    localStorage.setItem(key, JSON.stringify({ title, content, savedAt: new Date().toISOString() }));
+    $("draft-status").textContent = "임시저장됨";
+  } catch (error) {
+    console.error(error);
+    $("draft-status").textContent = "임시저장에 실패했습니다.";
+  }
+}
+
+function loadPostDraft() {
+  const key = draftStorageKey();
+  if (!key) return null;
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch (error) {
+    console.error(error);
+    localStorage.removeItem(key);
+    return null;
+  }
+}
+
+function clearPostDraft() {
+  const key = draftStorageKey();
+  if (key) localStorage.removeItem(key);
+  $("draft-status").textContent = "";
+}
+
+function scheduleDraftSave() {
+  if (state.editingPostId !== null) return;
+  window.clearTimeout(scheduleDraftSave.timer);
+  $("draft-status").textContent = "임시저장 중…";
+  scheduleDraftSave.timer = window.setTimeout(savePostDraft, 300);
 }
 
 async function loadProfile() {
@@ -166,12 +217,21 @@ async function deleteComment(id) {
 
 function openEditor(post = null) {
   state.editingPostId = post?.id ?? null;
+  const draft = post ? null : loadPostDraft();
   $("editor-title").textContent = post ? "게시글 수정" : "새 글 작성";
-  $("post-title").value = post?.title ?? "";
-  $("post-content").value = post?.content ?? "";
+  $("post-title").value = post?.title ?? draft?.title ?? "";
+  $("post-content").value = post?.content ?? draft?.content ?? "";
+  $("draft-status").textContent = post
+    ? ""
+    : draft
+      ? "임시저장된 내용을 불러왔습니다."
+      : "작성 내용은 자동으로 임시저장됩니다.";
   showView("editor-view");
   $("post-title").focus();
 }
+
+$("post-title").addEventListener("input", scheduleDraftSave);
+$("post-content").addEventListener("input", scheduleDraftSave);
 
 $("login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -191,12 +251,14 @@ $("edit-post-button").addEventListener("click", () => openEditor(state.activePos
 
 $("post-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const isNewPost = state.editingPostId === null;
   const values = { title: $("post-title").value.trim(), content: $("post-content").value.trim() };
   const query = state.editingPostId
     ? supabase.from("posts").update(values).eq("id", state.editingPostId).select().single()
     : supabase.from("posts").insert(values).select().single();
   const { data, error } = await query;
   if (error) return showToast("게시글을 저장하지 못했습니다.", true);
+  if (isNewPost) clearPostDraft();
   state.editingPostId = null;
   await openPost(data.id);
   showToast("게시글을 저장했습니다.");
@@ -222,23 +284,29 @@ $("comment-form").addEventListener("submit", async (event) => {
   await loadComments(state.activePost.id);
 });
 
-supabase.auth.onAuthStateChange(async (_event, session) => {
+supabase.auth.onAuthStateChange((_event, session) => {
   state.session = session;
   if (!session) {
+    appInitialized = false;
     state.profile = null;
     $("app-view").classList.add("hidden");
     $("login-view").classList.remove("hidden");
     $("login-password").value = "";
     return;
   }
-  try {
-    await loadProfile();
-    await loadPosts();
-    $("login-view").classList.add("hidden");
-    $("app-view").classList.remove("hidden");
-    showView("list-view");
-  } catch (error) {
-    console.error(error);
-    showToast("게시판 초기화에 실패했습니다.", true);
-  }
+  if (appInitialized) return;
+  appInitialized = true;
+  window.setTimeout(async () => {
+    try {
+      await loadProfile();
+      await loadPosts();
+      $("login-view").classList.add("hidden");
+      $("app-view").classList.remove("hidden");
+      showView("list-view");
+    } catch (error) {
+      appInitialized = false;
+      console.error(error);
+      showToast("게시판 초기화에 실패했습니다.", true);
+    }
+  }, 0);
 });
