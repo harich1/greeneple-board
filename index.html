@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="그리네플 경영지원·회계 업무 게시판">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://auxmfljugpuircggfswc.supabase.co wss://auxmfljugpuircggfswc.supabase.co; style-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
   <title>그리네플 경영지원·회계 업무 게시판</title>
-  <link rel="stylesheet" href="styles.css?v=20260930-2">
+  <link rel="stylesheet" href="styles.css?v=20260930-3">
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -53,13 +55,25 @@
           </div>
           <button id="new-post-button" class="primary-button" type="button">글쓰기</button>
         </div>
+        <form id="search-form" class="search-bar" role="search">
+          <label class="sr-only" for="search-input">게시물 검색</label>
+          <input id="search-input" type="search" maxlength="60" placeholder="제목, 내용, 작성자 검색">
+          <button class="primary-button" type="submit">검색</button>
+          <button id="clear-search-button" class="secondary-button" type="button">초기화</button>
+        </form>
         <div class="board-card">
           <div class="board-head" aria-hidden="true">
             <span>번호</span><span>제목</span><span>작성자</span><span>작성일</span><span>조회</span>
           </div>
           <div id="post-list" class="post-list"></div>
+          <div id="list-loading" class="list-loading hidden" role="status">게시물을 불러오는 중…</div>
           <div id="empty-posts" class="empty-state hidden">등록된 게시물이 없습니다.</div>
         </div>
+        <nav id="pagination" class="pagination hidden" aria-label="게시물 페이지 이동">
+          <button id="prev-page-button" class="secondary-button" type="button">이전</button>
+          <span id="page-status" aria-live="polite"></span>
+          <button id="next-page-button" class="secondary-button" type="button">다음</button>
+        </nav>
       </section>
 
       <section id="editor-view" class="hidden">
@@ -113,6 +127,6 @@
     </main>
   </div>
 
-  <script type="module" src="app.js?v=20260930-2"></script>
+  <script type="module" src="app.js?v=20260930-3"></script>
 </body>
 </html>
