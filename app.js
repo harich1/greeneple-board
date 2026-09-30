@@ -348,8 +348,9 @@ function leaveEditor(destination = "list-view") {
     if (!window.confirm("수정 중인 내용이 저장되지 않습니다. 나가시겠습니까?")) return;
   } else {
     window.clearTimeout(scheduleDraftSave.timer);
+    const hasContent = Boolean($("post-title").value || $("post-content").value);
     savePostDraft();
-    showToast("작성 내용이 임시저장되었습니다.");
+    showToast(hasContent ? "작성 내용이 임시저장되었습니다." : "임시저장 내용이 삭제되었습니다.");
   }
   showView(destination);
 }
